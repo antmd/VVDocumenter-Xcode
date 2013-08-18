@@ -14,6 +14,9 @@
 @property (nonatomic, copy) NSString *code;
 @property (nonatomic, retain) NSMutableArray *arguments;
 @property (nonatomic, assign) BOOL hasReturn;
+@property (nonatomic, copy) NSString* briefCommentStart;
+@property (nonatomic, copy) NSString* detailedCommentStart;
+@property (nonatomic, copy) NSString* structurePrefix ;
 
 -(id) initWithIndentString:(NSString *)indent codeString:(NSString *)code;
 -(NSString *) document;

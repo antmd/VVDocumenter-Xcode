@@ -23,13 +23,21 @@
         self.code = code;
         self.arguments = [NSMutableArray array];
         self.space = [[VVDocumenterSetting defaultSetting] spacesString];
+        VVDDoxygenStyle style = [[VVDocumenterSetting defaultSetting] doxygenStyle];
+        self.briefCommentStart = (style == DOXYGEN_STYLE_QT) ? @"//!" : @"///" ;
+        self.detailedCommentStart = (style == DOXYGEN_STYLE_QT) ? @"/*!\n" : @"/**\n";
+        self.structurePrefix = (style == DOXYGEN_STYLE_QT) ? @"\\" : @"@";
     }
     return self;
 }
 
+-(NSString*) briefComment
+{
+    return [ NSString stringWithFormat:@"%@%@ <#Brief Description#>.\n",self.indent, self.briefCommentStart ];
+}
 -(NSString *) startComment
 {
-    return [NSString stringWithFormat:@"%@/**\n%@<#Description#>\n", self.indent, self.prefixString];
+    return [NSString stringWithFormat:@"%@%@%@<#Description#>\n", self.indent, self.detailedCommentStart, self.prefixString];
 }
 
 -(NSString *) argumentsComment
@@ -45,7 +53,7 @@
     for (VVArgument *arg in self.arguments) {
         NSString *paddedName = [arg.name stringByPaddingToLength:longestNameLength withString:@" " startingAtIndex:0];
         
-        [result appendFormat:@"%@@param %@ <#%@ description#>\n", self.prefixString, paddedName, arg.name];
+        [result appendFormat:@"%@%@param %@ <#%@ description#>\n", self.prefixString, self.structurePrefix, paddedName, arg.name];
     }
     return result;
 }
@@ -55,7 +63,7 @@
     if (!self.hasReturn) {
         return @"";
     } else {
-        return [NSString stringWithFormat:@"%@%@@return <#return value description#>\n", self.emptyLine, self.prefixString];
+        return [NSString stringWithFormat:@"%@%@%@return <#return value description#>\n", self.emptyLine, self.prefixString, self.structurePrefix ];
     }
 }
 
@@ -66,7 +74,10 @@
 
 -(NSString *) document
 {
-    return [NSString stringWithFormat:@"%@%@%@%@",[self startComment],
+    BOOL includeBriefComment = [[VVDocumenterSetting defaultSetting] includeBriefDescription ];
+    return [NSString stringWithFormat:@"%@%@%@%@%@",
+                                                  (includeBriefComment ? [ self briefComment ] : @""),
+                                                  [self startComment],
                                                   [self argumentsComment],
                                                   [self returnComment],
                                                   [self endComment]];

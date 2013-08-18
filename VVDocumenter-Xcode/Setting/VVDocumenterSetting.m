@@ -14,6 +14,8 @@ NSString *const kVVDUseSpaces = @"com.onevcat.VVDocumenter.useSpaces";
 NSString *const kVVDSpaceCount = @"com.onevcat.VVDocumenter.spaceCount";
 NSString *const kVVDTriggerString = @"com.onevcat.VVDocumenter.triggerString";
 NSString *const kVVDPrefixWithStar = @"com.onevcat.VVDocumenter.prefixWithStar";
+NSString *const kVVDDoxygenStyle = @"com.onevcat.VVDocumenter.doxygenStyle";
+NSString *const kVVDIncludeBriefDescription = @"com.onevcat.VVDocumenter.includeBriefDescription";
 
 @implementation VVDocumenterSetting
 
@@ -25,7 +27,8 @@ NSString *const kVVDPrefixWithStar = @"com.onevcat.VVDocumenter.prefixWithStar";
         defaultSetting = [[VVDocumenterSetting alloc] init];
         
         NSDictionary *defaults = @{kVVDPrefixWithStar: @YES,
-                                   kVVDUseSpaces: @YES};
+                                   kVVDUseSpaces: @YES,
+                                   kVVDDoxygenStyle: @(DOXYGEN_STYLE_DEFAULT) };
         [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
     });
     return defaultSetting;
@@ -39,6 +42,30 @@ NSString *const kVVDPrefixWithStar = @"com.onevcat.VVDocumenter.prefixWithStar";
 -(void) setUseSpaces:(BOOL)useSpace
 {
     [[NSUserDefaults standardUserDefaults] setBool:useSpace forKey:kVVDUseSpaces];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+
+-(VVDDoxygenStyle) doxygenStyle
+{
+    return [[NSUserDefaults standardUserDefaults] integerForKey:kVVDDoxygenStyle];
+}
+
+-(void) setDoxygenStyle:(VVDDoxygenStyle)doxygenStyle
+{
+    [[NSUserDefaults standardUserDefaults] setInteger:doxygenStyle forKey:kVVDDoxygenStyle ];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+
+-(BOOL) includeBriefDescription
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:kVVDIncludeBriefDescription];
+}
+
+-(void) setIncludeBriefDescription:(BOOL)includeBriefDescription
+{
+    [[NSUserDefaults standardUserDefaults] setBool:includeBriefDescription forKey:kVVDIncludeBriefDescription ];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 

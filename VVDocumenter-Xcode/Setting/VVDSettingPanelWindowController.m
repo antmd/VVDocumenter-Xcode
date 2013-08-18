@@ -14,10 +14,9 @@
 @property (assign) IBOutlet NSButton *btnUseSpaces;
 @property (assign) IBOutlet NSTextField *tfSpaceCount;
 @property (assign) IBOutlet NSTextField *tfSpaceLabel;
-
 @property (assign) IBOutlet NSStepper *stepperCount;
-
 @property (assign) IBOutlet NSButton *btnPrefixWithStar;
+@property (readonly) VVDocumenterSetting* defaults;
 
 @end
 
@@ -59,6 +58,8 @@
     [[VVDocumenterSetting defaultSetting] setTriggerString:VVDDefaultTriggerString];
     [[VVDocumenterSetting defaultSetting] setSpaceCount:2];
     [[VVDocumenterSetting defaultSetting] setPrefixWithStar:YES];
+    [[VVDocumenterSetting defaultSetting] setIncludeBriefDescription:NO];
+    [[VVDocumenterSetting defaultSetting] setDoxygenStyle:DOXYGEN_STYLE_DEFAULT];
     
     self.btnUseSpaces.state = NSOnState;
     [self updateUseSpace:self.btnUseSpaces.state];
@@ -107,6 +108,11 @@
         }
     }
     return YES;
+}
+
+-(VVDocumenterSetting*)defaults
+{
+    return [VVDocumenterSetting defaultSetting];
 }
 
 @end
