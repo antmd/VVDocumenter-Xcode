@@ -1,3 +1,5 @@
 .DS_Store
 .idea
 UserInterfaceState.xcuserstate
+build
+VVDocumenter-Xcode.xcodeproj/xcuserdata/*.xcuserdatad
