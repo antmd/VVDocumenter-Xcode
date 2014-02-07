@@ -7,6 +7,7 @@
 //
 
 #import "VVDocumenterSetting.h"
+#import <Carbon/Carbon.h>
 
 NSString *const VVDDefaultTriggerString = @"///";
 
@@ -14,6 +15,9 @@ NSString *const kVVDUseSpaces = @"com.onevcat.VVDocumenter.useSpaces";
 NSString *const kVVDSpaceCount = @"com.onevcat.VVDocumenter.spaceCount";
 NSString *const kVVDTriggerString = @"com.onevcat.VVDocumenter.triggerString";
 NSString *const kVVDPrefixWithStar = @"com.onevcat.VVDocumenter.prefixWithStar";
+NSString *const kVVDPrefixWithSlashes = @"com.onevcat.VVDocumenter.prefixWithSlashes";
+NSString *const kVVDAddSinceToComments = @"com.onevcat.VVDocumenter.addSinceToComments";
+NSString *const kVVDUserHeaderDoc = @"com.onevcat.VVDocumenter.useHeaderDoc";
 NSString *const kVVDDoxygenStyle = @"com.onevcat.VVDocumenter.doxygenStyle";
 NSString *const kVVDIncludeBriefDescription = @"com.onevcat.VVDocumenter.includeBriefDescription";
 
@@ -69,6 +73,18 @@ NSString *const kVVDIncludeBriefDescription = @"com.onevcat.VVDocumenter.include
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+-(BOOL) useDvorakLayout
+{
+    TISInputSourceRef inputSource = TISCopyCurrentKeyboardLayoutInputSource();
+    NSString *layoutID = (__bridge NSString *)TISGetInputSourceProperty(inputSource, kTISPropertyInputSourceID);
+    CFRelease(inputSource);
+    if ([layoutID isEqualToString:@"com.apple.keylayout.Dvorak"]) {
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
 -(NSInteger) spaceCount
 {
     NSInteger count = [[NSUserDefaults standardUserDefaults] integerForKey:kVVDSpaceCount];
@@ -115,6 +131,38 @@ NSString *const kVVDIncludeBriefDescription = @"com.onevcat.VVDocumenter.include
 -(void) setPrefixWithStar:(BOOL)prefix
 {
     [[NSUserDefaults standardUserDefaults] setBool:prefix forKey:kVVDPrefixWithStar];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+-(BOOL) prefixWithSlashes
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:kVVDPrefixWithSlashes];
+}
+
+-(void) setPrefixWithSlashes:(BOOL)prefix
+{
+    [[NSUserDefaults standardUserDefaults] setBool:prefix forKey:kVVDPrefixWithSlashes];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+-(BOOL) addSinceToComments
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:kVVDAddSinceToComments];
+}
+
+-(void) setAddSinceToComments:(BOOL)add
+{
+    [[NSUserDefaults standardUserDefaults] setBool:add forKey:kVVDAddSinceToComments];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+-(BOOL) useHeaderDoc
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:kVVDUserHeaderDoc];
+}
+-(void) setUseHeaderDoc:(BOOL)use
+{
+    [[NSUserDefaults standardUserDefaults] setBool:use forKey:kVVDUserHeaderDoc];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 

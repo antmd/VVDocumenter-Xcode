@@ -18,6 +18,8 @@ typedef NS_ENUM(NSUInteger, VVDDoxygenStyle) {
 @interface VVDocumenterSetting : NSObject
 + (VVDocumenterSetting *)defaultSetting;
 
+-(BOOL) useDvorakLayout;
+
 -(BOOL) useSpaces;
 -(void) setUseSpaces:(BOOL)useSpace;
 
@@ -35,6 +37,15 @@ typedef NS_ENUM(NSUInteger, VVDDoxygenStyle) {
 
 -(BOOL) prefixWithStar;
 -(void) setPrefixWithStar:(BOOL)prefix;
+
+-(BOOL) prefixWithSlashes;
+-(void) setPrefixWithSlashes:(BOOL)prefix;
+
+-(BOOL) addSinceToComments;
+-(void) setAddSinceToComments:(BOOL)add;
+
+-(BOOL) useHeaderDoc;
+-(void) setUseHeaderDoc:(BOOL)use;
 
 -(NSString *) spacesString;
 

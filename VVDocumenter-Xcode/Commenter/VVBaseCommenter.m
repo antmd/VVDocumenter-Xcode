@@ -9,6 +9,7 @@
 #import "VVBaseCommenter.h"
 #import "VVArgument.h"
 #import "VVDocumenterSetting.h"
+#import "NSString+VVSyntax.h"
 
 @interface VVBaseCommenter()
 @property (nonatomic, copy) NSString *space;
@@ -37,7 +38,13 @@
 }
 -(NSString *) startComment
 {
-    return [NSString stringWithFormat:@"%@%@%@<#Description#>\n", self.indent, self.detailedCommentStart, self.prefixString];
+    if ([[VVDocumenterSetting defaultSetting] useHeaderDoc]) {
+        return [NSString stringWithFormat:@"%@/*!\n%@<#Description#>\n", self.indent, self.prefixString];
+    } else if ([[VVDocumenterSetting defaultSetting] prefixWithSlashes]) {
+        return [NSString stringWithFormat:@"%@<#Description#>\n", self.prefixString];
+    } else {
+        return [NSString stringWithFormat:@"%@%@%@<#Description#>\n", self.indent, self.detailedCommentStart, self.prefixString];
+    }
 }
 
 -(NSString *) argumentsComment
@@ -67,63 +74,88 @@
     }
 }
 
+-(NSString *) sinceComment
+{
+    if ([[VVDocumenterSetting defaultSetting] addSinceToComments]) {
+        return [NSString stringWithFormat:@"%@%@@since <#version number#>\n", self.emptyLine, self.prefixString];
+    } else {
+        return @"";
+    }
+}
+
 -(NSString *) endComment
 {
-    return [NSString stringWithFormat:@"%@ */",self.indent];
+    if ([[VVDocumenterSetting defaultSetting] prefixWithSlashes]) {
+        return @"";
+    } else {
+        return [NSString stringWithFormat:@"%@ */",self.indent];
+    }
 }
 
 -(NSString *) document
 {
     BOOL includeBriefComment = [[VVDocumenterSetting defaultSetting] includeBriefDescription ];
-    return [NSString stringWithFormat:@"%@%@%@%@%@",
-                                                  (includeBriefComment ? [ self briefComment ] : @""),
-                                                  [self startComment],
-                                                  [self argumentsComment],
-                                                  [self returnComment],
-                                                  [self endComment]];
+    NSString * comment = [NSString stringWithFormat:@"%@%@%@%@%@%@",
+                          (includeBriefComment ? [ self briefComment ] : @""),
+                          [self startComment],
+                          [self argumentsComment],
+                          [self returnComment],
+                          [self sinceComment],
+                          [self endComment]];
+
+    // The last line of the comment should be adjacent to the next line of code,
+    // back off the newline from the last comment component.
+    if ([[VVDocumenterSetting defaultSetting] prefixWithSlashes]) {
+        return [comment stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    } else {
+        return comment;
+    }
 }
 
 -(NSString *) emptyLine
 {
-    return [NSString stringWithFormat:@"%@\n", self.prefixString];
+    return [[NSString stringWithFormat:@"%@\n", self.prefixString] vv_stringByTrimEndSpaces];
 }
 
 -(NSString *) prefixString
 {
     if ([[VVDocumenterSetting defaultSetting] prefixWithStar]) {
         return [NSString stringWithFormat:@"%@ *%@", self.indent, self.space];
-    }
-    else {
+    } else if ([[VVDocumenterSetting defaultSetting] prefixWithSlashes]) {
+        return [NSString stringWithFormat:@"%@///%@", self.indent, self.space];
+    } else {
         return [NSString stringWithFormat:@"%@ ", self.indent];
     }
 }
 
--(void) parseArguments
+-(void) parseArgumentsInputArgs:(NSString *)rawArgsCode
 {
     [self.arguments removeAllObjects];
-    NSArray * braceGroups = [self.code vv_stringsByExtractingGroupsUsingRegexPattern:@"\\(([^\\(\\)]*)\\)"];
-    if (braceGroups.count > 0) {
-        NSString *argumentGroupString = braceGroups[0];
-        NSArray *argumentStrings = [argumentGroupString componentsSeparatedByString:@","];
-        for (NSString *argumentString in argumentStrings) {
-            VVArgument *arg = [[VVArgument alloc] init];
-            argumentString = [argumentString vv_stringByReplacingRegexPattern:@"\\s+$" withString:@""];
-            argumentString = [argumentString vv_stringByReplacingRegexPattern:@"\\s+" withString:@" "];
-            NSMutableArray *tempArgs = [[argumentString componentsSeparatedByString:@" "] mutableCopy];
-            while ([[tempArgs lastObject] isEqualToString:@" "]) {
-                [tempArgs removeLastObject];
-            }
-            arg.name = [tempArgs lastObject];
-
-            [tempArgs removeLastObject];
-            arg.type = [tempArgs componentsJoinedByString:@" "];
-            
-            VVLog(@"arg type: %@", arg.type);
-            VVLog(@"arg name: %@", arg.name);
-            
-            [self.arguments addObject:arg];
-        }
+    if (rawArgsCode.length == 0) {
+        return;
     }
-
+    
+    NSArray *argumentStrings = [rawArgsCode componentsSeparatedByString:@","];
+    for (__strong NSString *argumentString in argumentStrings) {
+        VVArgument *arg = [[VVArgument alloc] init];
+        argumentString = [argumentString vv_stringByReplacingRegexPattern:@"=\\s*\\w*" withString:@""];
+        argumentString = [argumentString vv_stringByReplacingRegexPattern:@"\\s+$" withString:@""];
+        argumentString = [argumentString vv_stringByReplacingRegexPattern:@"\\s+" withString:@" "];
+        NSMutableArray *tempArgs = [[argumentString componentsSeparatedByString:@" "] mutableCopy];
+        while ([[tempArgs lastObject] isEqualToString:@" "]) {
+            [tempArgs removeLastObject];
+        }
+        
+        arg.name = [tempArgs lastObject];
+        
+        [tempArgs removeLastObject];
+        arg.type = [tempArgs componentsJoinedByString:@" "];
+        
+        VVLog(@"arg type: %@", arg.type);
+        VVLog(@"arg name: %@", arg.name);
+        
+        [self.arguments addObject:arg];
+    }
 }
+
 @end
